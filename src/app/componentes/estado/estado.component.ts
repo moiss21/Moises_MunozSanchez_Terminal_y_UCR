@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import { io } from 'socket.io-client';
 import {TerminalRestService} from "../../servicios/terminal-rest.service";
+import {environment} from "../../../environments/environments";
 
 
 @Component({
@@ -11,9 +12,9 @@ import {TerminalRestService} from "../../servicios/terminal-rest.service";
 })
 export class EstadoComponent {
 
-  socket: any;                            //Variable de inicialización del socket
-  websocketStatusText = "Conectando";     //Variable de texto del estado de conexión al socket
-  webSocketStatusBool: boolean = false;   //Contemplaremos mediante un booleano el estado de la conexión del websocket
+  socket: any;                                      //Variable de inicialización del socket
+  websocketStatusText = environment.conectando;     //Variable de texto del estado de conexión al socket
+  webSocketStatusBool: boolean = false;             //Contemplaremos mediante un booleano el estado de la conexión del websocket
   button1Status: boolean = false;
   button2Status: boolean = false;
 
@@ -32,16 +33,16 @@ export class EstadoComponent {
 
   constructor(private router: Router, private route: ActivatedRoute, private terminalrest: TerminalRestService)
   {
-    this.socket = io('http://tapsd.local:8080');    //Inicialización de la conexión del socket mediante URL
+    this.socket = io(environment.socketIoServer);    //Inicialización de la conexión del socket mediante URL
 
-    this.socket.on('connect', () => {                   //--CONNECTION IS OK
-       this.websocketStatusText = "Establecida";        //Se indica la situación de la conexión
-       this.webSocketStatusBool = true;                 //Las clases varían en función al booleano
-    });                                                 //[ de la misma manera que los inline dots de antes, pero, eb vez de con la API-REST, con el socket ]
+    this.socket.on('connect', () => {                           //--CONNECTION IS OK
+       this.websocketStatusText = environment.establecida;      //Se indica la situación de la conexión
+       this.webSocketStatusBool = true;                         //Las clases varían en función al booleano
+    });                                                         //[ de la misma manera que los inline dots de antes, pero, eb vez de con la API-REST, con el socket ]
 
-    this.socket.on("disconnect", () => {                //--CONNECTION IS NOT OK
-      this.websocketStatusText = "Conectando";          //Se indica la situación de la conexión
-      this.webSocketStatusBool = false;                 //Las clases . . .
+    this.socket.on("disconnect", () => {                        //--CONNECTION IS NOT OK
+      this.websocketStatusText = environment.conectando;        //Se indica la situación de la conexión
+      this.webSocketStatusBool = false;                         //Las clases . . .
     });
   }
 
@@ -89,13 +90,15 @@ export class EstadoComponent {
 
   async getBBDDcredentials()
   {
-    while (true) { // bucle infinito
+    while (true)
+    {
+      //Bucle infinito
       try {
         this.bbddCredentials = await this.terminalrest.getTerminal().toPromise();
-        break; // si se ejecuta sin errores, salimos del bucle
+        break;   //Si se ejecuta sin errores, salimos del bucle
       } catch (error) {
-        console.error('Error al obtener las credenciales de la BBDD:', error);
-        await new Promise(resolve => setTimeout(resolve, 5000)); // esperamos 5 segundos antes de volver a intentarlo
+        //console.error(environment.errorTerminalApiRest, error);
+        await new Promise(resolve => setTimeout(resolve, 5000)); //Esperamos 5 segundos antes de volver a intentarlo
       }
     }
   }

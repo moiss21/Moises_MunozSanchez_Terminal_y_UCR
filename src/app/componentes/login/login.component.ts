@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TerminalRestService} from "../../servicios/terminal-rest.service";
+import {environment} from "../../../environments/environments";
 
 @Component({
   selector: 'app-login',
@@ -13,7 +14,7 @@ export class LoginComponent {
   checkingSpinner : any = false;
 
   //--Login HEADER Status Text--//
-  loginStatusText: any = "TAPSD DIspositive";
+  loginStatusText: any = environment.terminalTittle;
 
   //--BBDD VARIABLES FOR LOGIN--//
   bbddCredentials: any = undefined;
@@ -34,18 +35,19 @@ export class LoginComponent {
   }
 
   async getBBDDcredentials() {
-    while (true) { // bucle infinito
+    while (true) {
+      //Bucle infinito
       try {
-        this.loginStatusText = "TAPSD Dispositive"
+        this.loginStatusText = environment.terminalTittle
         this.bbddStatus = false;
         this.checkingSpinner = false;
         this.bbddCredentials = await this.terminalrest.getTerminal().toPromise();
-        break; // si se ejecuta sin errores, salimos del bucle
+        break; //Si se ejecuta sin errores, salimos del bucle
       } catch (error) {
-        this.loginStatusText = "Error BBDD connection"
+        this.loginStatusText = environment.errorTerminalApiRest
         this.bbddStatus = true;
         this.checkingSpinner = true;
-        console.error('Error al obtener las credenciales de la BBDD:', error);
+        console.error(environment.errorTerminalApiRestConsole, error);
         await new Promise(resolve => setTimeout(resolve, 5000)); // esperamos 5 segundos antes de volver a intentarlo
       }
     }
