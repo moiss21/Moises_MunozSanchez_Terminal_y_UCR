@@ -1,6 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
-import {environment} from "../../../environments/environments";
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-config',
@@ -9,17 +7,7 @@ import {environment} from "../../../environments/environments";
 })
 export class ConfigComponent {
 
-  constructor(private router: Router, private route: ActivatedRoute) { }
+  constructor() { }
 
-  ngOnInit()
-  {
-    if(localStorage.getItem("usernameLS") == null)
-    {
-      this.router.navigate(['/login'])
-    }
-    else
-    {
-      this.router.navigate(['/config'])
-    }
-  }
+  ngOnInit() {}
 }

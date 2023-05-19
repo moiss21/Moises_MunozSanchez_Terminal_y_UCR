@@ -8,9 +8,7 @@ import {environment} from "../../environments/environments";
 export class TerminalRestService {
 
   constructor(private http: HttpClient)
-  {
-
-  }
+  {}
 
   getTerminal(): any {
     return this.http.get(environment.terminalApiRest);

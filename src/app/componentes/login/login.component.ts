@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TerminalRestService} from "../../servicios/terminal-rest.service";
 import {environment} from "../../../environments/environments";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+
 
 @Component({
   selector: 'app-login',
@@ -10,125 +12,150 @@ import {environment} from "../../../environments/environments";
 })
 export class LoginComponent {
 
+  //--Formulario Reactivo--//
+  public formulario: FormGroup;
+
+
   //--Login BOOLEAN VARIABLES--//
-  checkingSpinner : any = false;
+  checkingSpinner: any = false;
+  connection: boolean = true;
 
   //--Login HEADER Status Text--//
   loginStatusText: any = environment.terminalTittle;
 
   //--BBDD VARIABLES FOR LOGIN--//
-  bbddCredentials: any = undefined;
+  bbddCredentials: any = "";
   bbddStatus: boolean = false;
 
   //--BOOLEANS PARA COMPROBAR CREDENCIALES--//
-  isUsernameValid : any = true;
-  isPasswordValid : any = true;
+  isUsernameValid: any = true;
+  isPasswordValid: any = true;
 
-  constructor(private router: Router, private route: ActivatedRoute, private terminalrest: TerminalRestService) { }
-
-  ngOnInit()
-  {
+  constructor(private router: Router, private route: ActivatedRoute, private terminalrest: TerminalRestService, private formBuilder: FormBuilder) {
+  }
+  ngOnInit() {
     this.passwordVisibilityFunction();
     this.getBBDDcredentials();
     this.checkCredentials()
-    console.log(localStorage.getItem("usernameLS"))
+    this.buildForm();  //Formularios reactivos
+
   }
 
   async getBBDDcredentials() {
-    while (true) {
+    while (this.connection) {
       //Bucle infinito
       try {
         this.loginStatusText = environment.terminalTittle
         this.bbddStatus = false;
         this.checkingSpinner = false;
         this.bbddCredentials = await this.terminalrest.getTerminal().toPromise();
-        break; //Si se ejecuta sin errores, salimos del bucle
+        this.connection = false //Si se ejecuta sin errores, salimos del bucle
       } catch (error) {
         this.loginStatusText = environment.errorTerminalApiRest
         this.bbddStatus = true;
         this.checkingSpinner = true;
         console.error(environment.errorTerminalApiRestConsole, error);
-        await new Promise(resolve => setTimeout(resolve, 5000)); // esperamos 5 segundos antes de volver a intentarlo
+        await new Promise(resolve => setTimeout(resolve, 1000)); // esperamos 5 segundos antes de volver a intentarlo
       }
     }
   }
+  /* formulario reactivo */
+  private buildForm() {
+    this.formulario = this.formBuilder.group({
+      username: ['', [Validators.required]],
+      password: ['', [Validators.required]],
+    });
+  }
 
-  checkCredentials()
-  {
+  validations() {
+    let inputUsername = (<HTMLInputElement>document.getElementById("username")) as HTMLElement | any;
+    let inputPassword = (<HTMLInputElement>document.getElementById("password")) as HTMLElement | any;
+
+    if (this.formulario.value.username != this.bbddCredentials[0].username && this.formulario.value.username != "") {
+      this.formulario.get('username').setValue('');
+      this.isUsernameValid = true;
+      inputUsername.classList.add('is-valid');
+
+      console.log(this.isUsernameValid)
+    } else {
+      console.log(this.isUsernameValid)
+      inputUsername.classList.add('is-invalid');
+      this.isUsernameValid = false;
+    }
+
+    if (this.formulario.value.password != this.bbddCredentials[0].password && this.formulario.value.password != "") {
+      this.formulario.get('password').setValue('');
+      this.isPasswordValid = true;
+      inputPassword.classList.add('is-valid');
+    } else {
+      inputPassword.classList.add('is-invalid');
+      this.isPasswordValid = false;
+    }
+
+    //--REDIRIGIMOS A LA ZONA DE CONFIGURACIÓN Y ESTADO EN CASO DE SER CORRECTAS LAS CREDENCIALES--//
+    if (this.formulario.value.password == this.bbddCredentials[0].password && this.formulario.value.username == this.bbddCredentials[0].username) {
+      localStorage.setItem('usernameLS', this.formulario.value.username)
+      localStorage.setItem('passwordLS', this.formulario.value.password)
+      console.log(this.formulario.value.password)
+      this.checkingSpinner = false;
+      window.location.reload();
+    } else {
+      this.checkingSpinner = false;
+    }
+  }
+
+  checkCredentials() {
 
     let login = document.querySelector("#login") as HTMLElement | any;
-    login.addEventListener('submit', (event : any) =>
-    {
-
+    login.addEventListener('submit', (event: any) => {
       //--SPINNER COMIENZA EN PETICION A BBDD LOCAL--//
       this.checkingSpinner = true;
-
       event.preventDefault()
 
-      let inputUsername = (<HTMLInputElement>document.getElementById("username")) as HTMLElement | any;
-      let inputPassword = (<HTMLInputElement>document.getElementById("password")) as HTMLElement | any;
-
-      if (!login.checkValidity()) {
+      if (login.checkValidity()) {
         event.preventDefault()
         event.stopPropagation()
       }
-
-      login.classList.add('was-validated')
-
+      this.validations()
       //--SE ESTABLECEN BOOLEANOS EN RELACIÓN A LA COMPARACIÓN DE LAS CREDENCIALES ENVIADAS--/
-      //Si las credenciales coinciden, se continúa adelante, si no, se pone el booleano correspondiente a false.
-      if(inputUsername.value != this.bbddCredentials[0].username  && inputUsername.value != "")
-      {
-        inputUsername.value = "";
-        this.isUsernameValid = false;
-      }
-      else
-      {
-        this.isUsernameValid = true;
-      }
-
-      if(inputPassword.value != this.bbddCredentials[0].password && inputPassword.value != "")
-      {
-        inputPassword.value = "";
-        this.isPasswordValid = false;
-      }
-      else
-      {
-        this.isPasswordValid = true;
-      }
-
-      //--REDIRIGIMOS A LA ZONA DE CONFIGURACIÓN Y ESTADO EN CASO DE SER CORRECTAS LAS CREDENCIALES--//
-      if(inputPassword.value == this.bbddCredentials[0].password && inputUsername.value == this.bbddCredentials[0].username)
-      {
-        localStorage.setItem('usernameLS', inputUsername.value)
-        localStorage.setItem('passwordLS', inputPassword.value)
-        console.log(inputPassword)
-        this.checkingSpinner = false;
-        window.location.reload();
-      }
-      else
-      {
-        this.checkingSpinner = false;
-      }
-
+      //Si las credenciales coinciden, se continúa adelante, si no, se pone el booleano correspondiente a false.  /* Revisar */
+      // if (inputUsername.value != this.bbddCredentials[0].username && inputUsername.value != "") {
+      //   inputUsername.value = "";
+      //   this.isUsernameValid = false;
+      // } else {
+      //   this.isUsernameValid = true;
+      // }
+      // if (inputPassword.value != this.bbddCredentials[0].password && inputPassword.value != "") {
+      //   inputPassword.value = "";
+      //   this.isPasswordValid = false;
+      // } else {
+      //   this.isPasswordValid = true;
+      // }
+      //   //--REDIRIGIMOS A LA ZONA DE CONFIGURACIÓN Y ESTADO EN CASO DE SER CORRECTAS LAS CREDENCIALES--//
+      //   if (inputPassword.value == this.formulario.value.password && inputUsername.value == this.formulario.value.username) {
+      //     localStorage.setItem('usernameLS', inputUsername.value)
+      //     localStorage.setItem('passwordLS', inputPassword.value)
+      //     console.log(inputPassword)
+      //     this.checkingSpinner = false;
+      //     window.location.reload();
+      //   } else {
+      //     this.checkingSpinner = false;
+      //   }
     }, false)
   }
 
-  passwordVisibilityFunction() {
 
-    let x = document.getElementById("password") as HTMLElement | any;
+  passwordVisibilityFunction() {
+    let textType = document.getElementById("password") as HTMLElement | any;
     let show_eye = document.getElementById("show_eye") as HTMLElement | any;
     let hide_eye = document.getElementById("hide_eye") as HTMLElement | any;
     hide_eye.classList.remove("d-none");
-    if (x.type === "password")
-    {
-      x.type = "text";
+    if (textType.type === "password") {
+      textType.type = "text";
       show_eye.style.display = "none";
       hide_eye.style.display = "block";
-    }
-    else
-    {
-      x.type = "password";
+    } else {
+      textType.type = "password";
       show_eye.style.display = "block";
       hide_eye.style.display = "none";
     }
