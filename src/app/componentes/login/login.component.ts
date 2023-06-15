@@ -27,7 +27,7 @@ export class LoginComponent {
   bbddCredentials: any = "";
   bbddStatus: boolean = false;
 
-  //--BOOLEANS PARA COMPROBAR CREDENCIALES--//
+  //-- BOOLEANS PARA COMPROBAR CREDENCIALES --//
   isUsernameValid: any = true;
   isPasswordValid: any = true;
 
@@ -76,9 +76,7 @@ export class LoginComponent {
       this.isUsernameValid = true;
       inputUsername.classList.add('is-valid');
 
-      console.log(this.isUsernameValid)
     } else {
-      console.log(this.isUsernameValid)
       inputUsername.classList.add('is-invalid');
       this.isUsernameValid = false;
     }
@@ -96,7 +94,6 @@ export class LoginComponent {
     if (this.formulario.value.password == this.bbddCredentials[0].password && this.formulario.value.username == this.bbddCredentials[0].username) {
       localStorage.setItem('usernameLS', this.formulario.value.username)
       localStorage.setItem('passwordLS', this.formulario.value.password)
-      console.log(this.formulario.value.password)
       this.checkingSpinner = false;
       window.location.reload();
     } else {
@@ -117,30 +114,6 @@ export class LoginComponent {
         event.stopPropagation()
       }
       this.validations()
-      //--SE ESTABLECEN BOOLEANOS EN RELACIÓN A LA COMPARACIÓN DE LAS CREDENCIALES ENVIADAS--/
-      //Si las credenciales coinciden, se continúa adelante, si no, se pone el booleano correspondiente a false.  /* Revisar */
-      // if (inputUsername.value != this.bbddCredentials[0].username && inputUsername.value != "") {
-      //   inputUsername.value = "";
-      //   this.isUsernameValid = false;
-      // } else {
-      //   this.isUsernameValid = true;
-      // }
-      // if (inputPassword.value != this.bbddCredentials[0].password && inputPassword.value != "") {
-      //   inputPassword.value = "";
-      //   this.isPasswordValid = false;
-      // } else {
-      //   this.isPasswordValid = true;
-      // }
-      //   //--REDIRIGIMOS A LA ZONA DE CONFIGURACIÓN Y ESTADO EN CASO DE SER CORRECTAS LAS CREDENCIALES--//
-      //   if (inputPassword.value == this.formulario.value.password && inputUsername.value == this.formulario.value.username) {
-      //     localStorage.setItem('usernameLS', inputUsername.value)
-      //     localStorage.setItem('passwordLS', inputPassword.value)
-      //     console.log(inputPassword)
-      //     this.checkingSpinner = false;
-      //     window.location.reload();
-      //   } else {
-      //     this.checkingSpinner = false;
-      //   }
     }, false)
   }
 
